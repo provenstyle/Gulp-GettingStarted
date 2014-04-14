@@ -1,15 +1,17 @@
 var gulp = require('gulp');
 var help = require('gulp-task-listing');
-var spawn = require('child_process').spawn;
+var clean = require('gulp-clean');
+var service = require('./util/windowsService');
+var iis = require('./util/iis');
 
-var startServices = [
+var servicesToStart = [
 	'ADAM_WatchGuardLDS',
 	'WatchGuardTokenService',
 	'WatchGuardHostedService',
 	'WatchGuard LVS Service'
 ];
 
-var stopServices = [
+var servicesToStop = [
 	'WatchGuard LVS Service',
 	'WatchGuardHostedService',
 	'WatchGuardTokenService',
@@ -25,35 +27,22 @@ gulp.task('default', function(){
 });
 
 gulp.task('startServices', function(){
-	for(var i = 0; i < startServices.length; i++){
-		run('sc', ['start', startServices[i]]);
-	}
+	servicesToStart.forEach(service.start);
 });
 
 gulp.task('stopServices', function(){
-	for(var i = 0; i < stopServices.length; i++){
-		run('sc', ['stop', stopServices[i]]);
-	}
+	servicesToStop.forEach(service.stop);
 });
 
-function run(cmd, args) {
-	var child = spawn(cmd, args);
+gulp.task('startIIS', function(){
+	iis.start();
+});
 
-    child.stdout.on('data', function (data) {
-    	console.log('stdout: ' + data.toString());
-    });
-    child.stderr.on('data', function (data) {
-    	console.log('stderr: ' + data.toString()); 
-    });
-    child.on('close', function(code){
-    	console.log('command: ' + fullCommand() + ' exited with code: ' + code);
-    });
+gulp.task('stopIIS', function(){
+	iis.stop()
+});
 
-    function fullCommand(){
-		var temp = cmd;
-		for(var i = 0; i < args.length; i++){
-	    	temp += " " + args[i];
-		}
-		return '[' + temp + ']';
-	}
-}
+gulp.task('deleteLogs', ['stopIIS', 'stopServices'], function(){
+	gulp.src('c:/WatchGuardVideo/Logs/**', {read: 'false'})
+		.pipe(clean({force: true}));
+});
