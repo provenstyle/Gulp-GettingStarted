@@ -7,6 +7,7 @@ var wait = require('./util/wait');
 var service = require('./util/windowsService');
 var iis = require('./util/iis');
 var msbuild = require('./util/msbuild');
+var kill = require('./util/kill');
 
 var logPath = 'C:/WatchGuardVideo/Logs/**',
 	root = 'C:/Watchguard/Newton/Newton/', 
@@ -22,12 +23,21 @@ var logPath = 'C:/WatchGuardVideo/Logs/**',
 		'WatchGuardHostedService',
 		'WatchGuardTokenService',
 		'ADAM_WatchGuardLDS'
+	],
+	tasksToKill = [
+		'WGEvidLibrary.exe',
+		'WGEvidLibrary.vshost.exe',
+		'Services.Host.PublishingService.exe',
+		'Services.Host.PublishingService.vshost.exe',
+		'Services.Host.Transcoding.exe',
+		'Services.Host.Transcoding.vshost.exe',
+		'wgImportScanner.exe',
+		'wgImportScanner.vshost.exe',
+		'Services.Host.LVS.exe',
+		'Services.Host.LVS.vshost.exe',
+		'Services.Host.WinService.exe',
+		'Services.Host.WinService.vshost.exe'
 	];
-
-function buildLVS(){
-	var buildFile = root + 'Live Video Streaming/Live Video Streaming.msbuild';
-	return msbuild.build(buildFile, ['clean', 'release', 'test']);
-}
 
 gulp.task('help', help);
 
@@ -36,9 +46,27 @@ gulp.task('default', function(){
 	console.log(msg);
 });
 
-gulp.task('buildLVS', function(){
-	return buildLVS();
+gulp.task('buildLVS', ['stopServices'], function(){
+	var buildFile = root + 'Live Video Streaming/Live Video Streaming.msbuild';
+	return msbuild.build(buildFile, ['clean', 'release', 'test']);
 });
+
+gulp.task('buildCommon', function(){
+	var buildFile = root + 'Common/WatchGuard.Common.sln';
+	return msbuild.build(buildFile);
+});
+
+gulp.task('buildEL', function(){
+	var buildFile = root + 'Evidence Library/WatchGuard.EvidenceLibrary.sln';
+	return msbuild.build(buildFile);
+});
+
+gulp.task('buildHostedServices', ['stopServices'], function(){
+	var buildFile = root + 'Hosted Services/WatchGuard.HostedServices.sln';
+	return msbuild.build(buildFile);
+});
+
+gulp.task('buildNewton', ['buildCommon', 'buildHostedServices', 'buildEL',  'buildLVS']);
 
 gulp.task('startServices', function(){
 	return wait.onAll(servicesToStart, service.start);
@@ -46,6 +74,10 @@ gulp.task('startServices', function(){
 
 gulp.task('stopServices', function(){
 	return wait.onAll(servicesToStop, service.stop);
+});
+
+gulp.task('kill', ['stopServices'], function(){
+	return wait.onAll(tasksToKill, kill.now);
 });
 
 gulp.task('startIIS', function(){
@@ -63,11 +95,7 @@ gulp.task('deleteLogs', ['stopIIS', 'stopServices'], function(){
 
 gulp.task('startAll', ['startIIS', 'startServices']);
 
-gulp.task('copyConfigs', ['_copyConfigs'], function(){
-	return buildLVS();
-});
-
-gulp.task('_copyConfigs', ['_copyELConfig', '_copyHostConfig', '_copyHostLogConfig', '_copyLVSConfig', '_copyJSConfig', '_copyWebConfig']);
+gulp.task('copyConfigs', ['_copyELConfig', '_copyHostConfig', '_copyHostLogConfig', '_copyLVSConfig', '_copyJSConfig', '_copyWebConfig']);
 
 gulp.task('_copyELConfig', ['stopServices'], function(){
 	return gulp.src('C:/Watchguard/Newton/Configs/EvidenceLibrary/WGEvidLibrary.exe.config')

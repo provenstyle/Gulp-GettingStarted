@@ -22,7 +22,7 @@ function run(cmd, args) {
 		for(var i = 0; i < args.length; i++){
 	    	temp += " " + args[i];
 		}
-		return '[' + temp + ']';
+		return '[ ' + temp + ' ]';
 	}
 
     return def.promise;
