@@ -14,6 +14,7 @@ function run(cmd, args) {
 
     child.on('error', function(code){
         console.log('error: ' + fullCommand() + 'errored with code: ' + code);
+        def.reject("An error occured while executing the command.");
     })
 
     function fullCommand(){

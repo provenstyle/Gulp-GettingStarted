@@ -24,6 +24,11 @@ var logPath = 'C:/WatchGuardVideo/Logs/**',
 		'ADAM_WatchGuardLDS'
 	];
 
+function build(){
+	var buildFile = root + 'Live Video Streaming/Live Video Streaming.msbuild';
+	return msbuild.build(buildFile, ['clean', 'release', 'test']);
+}
+
 gulp.task('help', help);
 
 gulp.task('default', function(){
@@ -32,8 +37,7 @@ gulp.task('default', function(){
 });
 
 gulp.task('build', function(){
-	var buildFile = root + 'Live Video Streaming/Live Video Streaming.msbuild';
-	msbuild.build(buildFile, ['clean', 'release', 'test']);
+	return build();
 });
 
 gulp.task('startServices', function(){
@@ -53,33 +57,47 @@ gulp.task('stopIIS', function(){
 });
 
 gulp.task('deleteLogs', ['stopIIS', 'stopServices'], function(){
-	gulp.src(logPath, {read: 'false'})
-		.pipe(clean({force: true}));
+	return gulp.src(logPath, {read: 'false'})
+			.pipe(clean({force: true}));
 });
 
 gulp.task('startAll', ['startIIS', 'startServices']);
 
-gulp.task('copyConfigs', ['stopServices'], function(){
-	gulp.src('C:/Watchguard/Newton/Configs/EvidenceLibrary/WGEvidLibrary.exe.config')
-		.pipe(rename('App.config'))
-		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Evidence Library/WatchGuard.EvidenceLibrary'));
+gulp.task('copyConfigs', ['_copyConfigs'], function(){
+	return build();
+});
 
-	gulp.src('C:/Watchguard/Newton/Configs/HostedServices/Services.Host.WinService.exe.config')
-		.pipe(rename('App.config'))
-		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Hosted Services/Services.Host.WinService'));
+gulp.task('_copyConfigs', ['_copyELConfig', '_copyHostConfig', '_copyHostLogConfig', '_copyLVSConfig', '_copyJSConfig', '_copyWebConfig']);
 
-	gulp.src('C:/Watchguard/Newton/Configs/HostedServices/log4net.config')
-		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Hosted Services/Services.Host.WinService'));
+gulp.task('_copyELConfig', ['stopServices'], function(){
+	return gulp.src('C:/Watchguard/Newton/Configs/EvidenceLibrary/WGEvidLibrary.exe.config')
+			.pipe(rename('App.config'))
+			.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Evidence Library/WatchGuard.EvidenceLibrary'));
+});
 
-	gulp.src('C:/Watchguard/Newton/Configs/LVS.Service/Services.Host.LVS.exe.config')
-		.pipe(rename('App.config'))
-		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/Services.Host.LVS'));
+gulp.task('_copyHostConfig', ['stopServices'], function(){
+	return gulp.src('C:/Watchguard/Newton/Configs/HostedServices/Services.Host.WinService.exe.config')
+			.pipe(rename('App.config'))
+			.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Hosted Services/Services.Host.WinService'));
+});
 
-	gulp.src('C:/Watchguard/Newton/Configs/LVS.Web/config.js')
-		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/LVS.Web'));
+gulp.task('_copyHostLogConfig', ['stopServices'], function(){
+	return gulp.src('C:/Watchguard/Newton/Configs/HostedServices/log4net.config')
+			.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Hosted Services/Services.Host.WinService'));
+});
 
-	gulp.src('C:/Watchguard/Newton/Configs/LVS.Web/Web.config')
-		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/LVS.Web'));
+gulp.task('_copyLVSConfig', ['stopServices'], function(){
+	return gulp.src('C:/Watchguard/Newton/Configs/LVS.Service/Services.Host.LVS.exe.config')
+			.pipe(rename('App.config'))
+			.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/Services.Host.LVS'));
+});
 
-	gulp.run();
+gulp.task('_copyJSConfig', ['stopServices'], function(){
+	return gulp.src('C:/Watchguard/Newton/Configs/LVS.Web/config.js')
+			.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/LVS.Web'));
+});
+
+gulp.task('_copyWebConfig', ['stopServices'], function(){
+	return gulp.src('C:/Watchguard/Newton/Configs/LVS.Web/Web.config')
+			.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/LVS.Web'));
 });
