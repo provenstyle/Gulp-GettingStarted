@@ -6,9 +6,10 @@ var rename = require('gulp-rename');
 var wait = require('./util/wait');
 var service = require('./util/windowsService');
 var iis = require('./util/iis');
+var msbuild = require('./util/msbuild');
 
-var logPath = 'c:/WatchGuardVideo/Logs/**',
-	root = 'c:/Watchguard/Newton/Newton', 
+var logPath = 'C:/WatchGuardVideo/Logs/**',
+	root = 'C:/Watchguard/Newton/Newton/', 
 	servicesToStart = [
 		'ADAM_WatchGuardLDS',
 		'WatchGuardTokenService',
@@ -17,6 +18,7 @@ var logPath = 'c:/WatchGuardVideo/Logs/**',
 	],
 	servicesToStop = [
 		'WatchGuard LVS Service',
+		'WatchGuardImportService',
 		'WatchGuardHostedService',
 		'WatchGuardTokenService',
 		'ADAM_WatchGuardLDS'
@@ -27,6 +29,11 @@ gulp.task('help', help);
 gulp.task('default', function(){
 	var msg = "Default task doesn't do anything yet!";
 	console.log(msg);
+});
+
+gulp.task('build', function(){
+	var buildFile = root + 'Live Video Streaming/Live Video Streaming.msbuild';
+	msbuild.build(buildFile, ['clean', 'release', 'test']);
 });
 
 gulp.task('startServices', function(){
@@ -73,4 +80,6 @@ gulp.task('copyConfigs', ['stopServices'], function(){
 
 	gulp.src('C:/Watchguard/Newton/Configs/LVS.Web/Web.config')
 		.pipe(gulp.dest('C:/Watchguard/Newton/Newton/Live Video Streaming/LVS.Web'));
+
+	gulp.run();
 });

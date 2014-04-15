@@ -3,19 +3,18 @@ var Q = require('q');
 
 function run(cmd, args) {
     var def = Q.defer();
-	var child = spawn(cmd, args);
 
-    child.stdout.on('data', function (data) {
-    	console.log('stdout: ' + data.toString());
-    });
-    child.stderr.on('data', function (data) {
-    	console.log('stderr: ' + data.toString());
-        def.reject('An error occured while calling: ' + fullCommand());
-    });
+    console.log('Running: ' + fullCommand());
+	var child = spawn(cmd, args, {stdio : 'inherit'}); //{stdio : 'inherit'} preserves color in the console
+
     child.on('close', function(code){
     	console.log('command: ' + fullCommand() + ' exited with code: ' + code);
         def.resolve();
     });
+
+    child.on('error', function(code){
+        console.log('error: ' + fullCommand() + 'errored with code: ' + code);
+    })
 
     function fullCommand(){
 		var temp = cmd;
