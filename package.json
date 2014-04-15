@@ -5,6 +5,7 @@
     "gulp-shell": "~0.2.4",
     "gulp-task-listing": "~0.2.2",
     "gulp-clean": "~0.2.4",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "gulp-rename": "~1.2.0"
   }
 }
