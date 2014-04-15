@@ -24,7 +24,7 @@ var logPath = 'C:/WatchGuardVideo/Logs/**',
 		'ADAM_WatchGuardLDS'
 	];
 
-function build(){
+function buildLVS(){
 	var buildFile = root + 'Live Video Streaming/Live Video Streaming.msbuild';
 	return msbuild.build(buildFile, ['clean', 'release', 'test']);
 }
@@ -36,8 +36,8 @@ gulp.task('default', function(){
 	console.log(msg);
 });
 
-gulp.task('build', function(){
-	return build();
+gulp.task('buildLVS', function(){
+	return buildLVS();
 });
 
 gulp.task('startServices', function(){
@@ -64,7 +64,7 @@ gulp.task('deleteLogs', ['stopIIS', 'stopServices'], function(){
 gulp.task('startAll', ['startIIS', 'startServices']);
 
 gulp.task('copyConfigs', ['_copyConfigs'], function(){
-	return build();
+	return buildLVS();
 });
 
 gulp.task('_copyConfigs', ['_copyELConfig', '_copyHostConfig', '_copyHostLogConfig', '_copyLVSConfig', '_copyJSConfig', '_copyWebConfig']);
